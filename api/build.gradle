@@ -1,0 +1,21 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = rootProject.group
+version = rootProject.version
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'jmeter-kafka-sampler-api'
+            from components.java
+
+            pom {
+                name = 'JMeter Kafka Plugin API'
+                description = 'Public API for implementing custom KafkaMessageProducer classes for JMeter Kafka plugin.'
+            }
+        }
+    }
+}

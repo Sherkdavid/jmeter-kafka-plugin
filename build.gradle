@@ -1,0 +1,100 @@
+plugins {
+    id 'base'
+}
+
+group = 'io.github.sherkdavid.jmeter.kafka'
+version = '1.0.0'
+
+ext {
+    jmeterVersion = '5.6.2'
+    kafkaVersion = '3.5.0'
+
+    projectUrl = 'https://github.com/Sherkdavid/jmeter-kafka-plugin'
+    scmUrl = 'https://github.com/Sherkdavid/jmeter-kafka-plugin'
+    scmConnection = 'scm:git:git://github.com/Sherkdavid/jmeter-kafka-plugin.git'
+    scmDeveloperConnection = 'scm:git:ssh://github.com/Sherkdavid/jmeter-kafka-plugin.git'
+
+    licenseName = 'Apache License, Version 2.0'
+    licenseUrl = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+
+    developerId = 'Sherkdavid'
+    developerName = 'Sherk David'
+    developerEmail = 'sherk@example.com'
+}
+
+subprojects {
+    repositories {
+        mavenCentral()
+    }
+
+    plugins.withId('java') {
+        java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(8)
+            }
+            withSourcesJar()
+            withJavadocJar()
+        }
+
+        tasks.withType(JavaCompile).configureEach {
+            options.encoding = 'UTF-8'
+        }
+    }
+
+    plugins.withId('maven-publish') {
+        apply plugin: 'signing'
+
+        publishing {
+            publications.withType(MavenPublication).configureEach {
+                pom {
+                    url = rootProject.ext.projectUrl
+
+                    licenses {
+                        license {
+                            name = rootProject.ext.licenseName
+                            url = rootProject.ext.licenseUrl
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = rootProject.ext.developerId
+                            name = rootProject.ext.developerName
+                            email = rootProject.ext.developerEmail
+                        }
+                    }
+
+                    scm {
+                        url = rootProject.ext.scmUrl
+                        connection = rootProject.ext.scmConnection
+                        developerConnection = rootProject.ext.scmDeveloperConnection
+                    }
+                }
+            }
+
+            repositories {
+                maven {
+                    name = 'sonatype'
+                    def releasesRepoUrl = uri('https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/')
+                    def snapshotsRepoUrl = uri('https://s01.oss.sonatype.org/content/repositories/snapshots/')
+                    url = version.toString().endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+
+                    credentials {
+                        username = findProperty('ossrhUsername') ?: System.getenv('OSSRH_USERNAME')
+                        password = findProperty('ossrhPassword') ?: System.getenv('OSSRH_PASSWORD')
+                    }
+                }
+            }
+        }
+
+        def signingKey = findProperty('signingKey') ?: System.getenv('SIGNING_KEY')
+        def signingPassword = findProperty('signingPassword') ?: System.getenv('SIGNING_PASSWORD')
+
+        signing {
+            if (signingKey && signingPassword) {
+                useInMemoryPgpKeys(signingKey, signingPassword)
+                sign(publishing.publications)
+            }
+        }
+    }
+}
