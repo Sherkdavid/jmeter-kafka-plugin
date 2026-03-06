@@ -23,6 +23,8 @@ public class KafkaLoadTestSamplerTest {
         assertEquals("10", sampler.getLingerMs());
         assertEquals("1", sampler.getAcks());
         assertEquals("none", sampler.getCompressionType());
+        assertEquals("PLAINTEXT", sampler.getSecurityProtocol());
+        assertEquals("", sampler.getSaslJaasConfig());
     }
     
     @Test
@@ -35,6 +37,8 @@ public class KafkaLoadTestSamplerTest {
         sampler.setLingerMs("20");
         sampler.setAcks("all");
         sampler.setCompressionType("gzip");
+        sampler.setSecurityProtocol("SASL_SSL");
+        sampler.setSaslJaasConfig("org.apache.kafka.common.security.plain.PlainLoginModule required username=\"user\" password=\"pass\";");
         
         assertEquals("kafka:9092", sampler.getBootstrapServers());
         assertEquals("my-topic", sampler.getTopic());
@@ -44,5 +48,7 @@ public class KafkaLoadTestSamplerTest {
         assertEquals("20", sampler.getLingerMs());
         assertEquals("all", sampler.getAcks());
         assertEquals("gzip", sampler.getCompressionType());
+        assertEquals("SASL_SSL", sampler.getSecurityProtocol());
+        assertEquals("org.apache.kafka.common.security.plain.PlainLoginModule required username=\"user\" password=\"pass\";", sampler.getSaslJaasConfig());
     }
 }

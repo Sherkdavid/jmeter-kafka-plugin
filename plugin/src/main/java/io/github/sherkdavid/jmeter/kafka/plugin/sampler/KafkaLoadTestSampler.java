@@ -53,6 +53,8 @@ public class KafkaLoadTestSampler extends AbstractSampler implements ThreadListe
     private static final String LINGER_MS = "kafka.linger.ms";
     private static final String ACKS = "kafka.acks";
     private static final String COMPRESSION_TYPE = "kafka.compression.type";
+    private static final String SECURITY_PROTOCOL = "kafka.security.protocol";
+    private static final String SASL_JAAS_CONFIG = "kafka.sasl.jaas.config";
     
     private transient KafkaProducer<String, byte[]> kafkaProducer;
     private transient KafkaMessageProducer messageProducer;
@@ -78,6 +80,8 @@ public class KafkaLoadTestSampler extends AbstractSampler implements ThreadListe
         setProperty(LINGER_MS, "10");
         setProperty(ACKS, "1");
         setProperty(COMPRESSION_TYPE, "none");
+        setProperty(SECURITY_PROTOCOL, "PLAINTEXT");
+        setProperty(SASL_JAAS_CONFIG, "");
     }
     
     /**
@@ -177,6 +181,13 @@ public class KafkaLoadTestSampler extends AbstractSampler implements ThreadListe
             getPropertyAsString(ACKS));
         props.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, 
             getPropertyAsString(COMPRESSION_TYPE));
+        props.put("security.protocol",
+            getPropertyAsString(SECURITY_PROTOCOL));
+
+        String saslJaasConfig = getPropertyAsString(SASL_JAAS_CONFIG, "");
+        if (saslJaasConfig != null && !saslJaasConfig.trim().isEmpty()) {
+            props.put("sasl.jaas.config", saslJaasConfig);
+        }
         
         logger.debug("Creating Kafka producer with bootstrap servers: {}", 
             getPropertyAsString(BOOTSTRAP_SERVERS));
@@ -323,5 +334,21 @@ public class KafkaLoadTestSampler extends AbstractSampler implements ThreadListe
     
     public String getCompressionType() {
         return getPropertyAsString(COMPRESSION_TYPE);
+    }
+
+    public void setSecurityProtocol(String securityProtocol) {
+        setProperty(SECURITY_PROTOCOL, securityProtocol);
+    }
+
+    public String getSecurityProtocol() {
+        return getPropertyAsString(SECURITY_PROTOCOL);
+    }
+
+    public void setSaslJaasConfig(String saslJaasConfig) {
+        setProperty(SASL_JAAS_CONFIG, saslJaasConfig);
+    }
+
+    public String getSaslJaasConfig() {
+        return getPropertyAsString(SASL_JAAS_CONFIG);
     }
 }

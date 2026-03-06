@@ -194,6 +194,8 @@ cp plugin/build/libs/jmeter-kafka-sampler-1.0.0.jar "$JMETER_HOME/lib/ext/"
 ### Optional Tuning
 
 - **Message Key**: route messages by key
+- **Security Protocol**: `PLAINTEXT`, `SSL`, `SASL_PLAINTEXT`, or `SASL_SSL`
+- **SASL JAAS Config**: JAAS login config string sent as `sasl.jaas.config`
 - **Batch Size**: producer batch size in bytes
 - **Linger (ms)**: batching delay
 - **Acks**: `0`, `1`, or `all`

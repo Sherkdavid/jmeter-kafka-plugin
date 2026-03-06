@@ -38,6 +38,8 @@ public class KafkaLoadTestSamplerGui extends AbstractSamplerGui {
     private JTextField lingerMsField;
     private JComboBox<String> acksCombo;
     private JComboBox<String> compressionTypeCombo;
+    private JComboBox<String> securityProtocolCombo;
+    private JTextField saslJaasConfigField;
     
     /**
      * Constructor for KafkaLoadTestSamplerGui
@@ -80,51 +82,61 @@ public class KafkaLoadTestSamplerGui extends AbstractSamplerGui {
         mainPanel.add(new JLabel("Topic:"), createLabelConstraints(gbc));
         topicField = new JTextField(20);
         mainPanel.add(topicField, createFieldConstraints(gbc));
+
+        gbc.gridy = 3;
+        mainPanel.add(new JLabel("Security Protocol:"), createLabelConstraints(gbc));
+        securityProtocolCombo = new JComboBox<>(new String[]{"PLAINTEXT", "SSL", "SASL_PLAINTEXT", "SASL_SSL"});
+        mainPanel.add(securityProtocolCombo, createFieldConstraints(gbc));
+
+        gbc.gridy = 4;
+        mainPanel.add(new JLabel("SASL JAAS Config:"), createLabelConstraints(gbc));
+        saslJaasConfigField = new JTextField(30);
+        mainPanel.add(saslJaasConfigField, createFieldConstraints(gbc));
         
         // Message Producer Settings
-        gbc.gridy = 3;
-        mainPanel.add(new JLabel("Message Producer:"), createHeaderConstraints(gbc, 3));
+        gbc.gridy = 5;
+        mainPanel.add(new JLabel("Message Producer:"), createHeaderConstraints(gbc, 5));
         
-        gbc.gridy = 4;
+        gbc.gridy = 6;
         mainPanel.add(new JLabel("Producer Class:"), createLabelConstraints(gbc));
         producerClassField = new JTextField(30);
         mainPanel.add(producerClassField, createFieldConstraints(gbc));
         
         // Optional Settings
-        gbc.gridy = 5;
-        mainPanel.add(new JLabel("Optional Settings:"), createHeaderConstraints(gbc, 5));
+        gbc.gridy = 7;
+        mainPanel.add(new JLabel("Optional Settings:"), createHeaderConstraints(gbc, 7));
         
-        gbc.gridy = 6;
+        gbc.gridy = 8;
         mainPanel.add(new JLabel("Message Key:"), createLabelConstraints(gbc));
         messageKeyField = new JTextField(20);
         mainPanel.add(messageKeyField, createFieldConstraints(gbc));
         
         // Producer Configuration
-        gbc.gridy = 7;
-        mainPanel.add(new JLabel("Producer Configuration:"), createHeaderConstraints(gbc, 7));
+        gbc.gridy = 9;
+        mainPanel.add(new JLabel("Producer Configuration:"), createHeaderConstraints(gbc, 9));
         
-        gbc.gridy = 8;
+        gbc.gridy = 10;
         mainPanel.add(new JLabel("Batch Size:"), createLabelConstraints(gbc));
         batchSizeField = new JTextField("16384", 10);
         mainPanel.add(batchSizeField, createFieldConstraints(gbc));
         
-        gbc.gridy = 9;
+        gbc.gridy = 11;
         mainPanel.add(new JLabel("Linger (ms):"), createLabelConstraints(gbc));
         lingerMsField = new JTextField("10", 10);
         mainPanel.add(lingerMsField, createFieldConstraints(gbc));
         
-        gbc.gridy = 10;
+        gbc.gridy = 12;
         mainPanel.add(new JLabel("Acks:"), createLabelConstraints(gbc));
         acksCombo = new JComboBox<>(new String[]{"0", "1", "all"});
         mainPanel.add(acksCombo, createFieldConstraints(gbc));
         
-        gbc.gridy = 11;
+        gbc.gridy = 13;
         mainPanel.add(new JLabel("Compression:"), createLabelConstraints(gbc));
         compressionTypeCombo = new JComboBox<>(new String[]{"none", "gzip", "snappy", "lz4", "zstd"});
         mainPanel.add(compressionTypeCombo, createFieldConstraints(gbc));
         
         // Add filler panel
-        gbc.gridy = 12;
+        gbc.gridy = 14;
         gbc.weighty = 1.0;
         mainPanel.add(new JPanel(), createFieldConstraints(gbc));
         
@@ -192,6 +204,8 @@ public class KafkaLoadTestSamplerGui extends AbstractSamplerGui {
             KafkaLoadTestSampler sampler = (KafkaLoadTestSampler) element;
             sampler.setBootstrapServers(bootstrapServersField.getText());
             sampler.setTopic(topicField.getText());
+            sampler.setSecurityProtocol((String) securityProtocolCombo.getSelectedItem());
+            sampler.setSaslJaasConfig(saslJaasConfigField.getText());
             sampler.setProducerClass(producerClassField.getText());
             sampler.setMessageKey(messageKeyField.getText());
             sampler.setBatchSize(batchSizeField.getText());
@@ -209,6 +223,8 @@ public class KafkaLoadTestSamplerGui extends AbstractSamplerGui {
             KafkaLoadTestSampler sampler = (KafkaLoadTestSampler) element;
             bootstrapServersField.setText(sampler.getBootstrapServers());
             topicField.setText(sampler.getTopic());
+            securityProtocolCombo.setSelectedItem(sampler.getSecurityProtocol());
+            saslJaasConfigField.setText(sampler.getSaslJaasConfig());
             producerClassField.setText(sampler.getProducerClass());
             messageKeyField.setText(sampler.getMessageKey());
             batchSizeField.setText(sampler.getBatchSize());
@@ -223,6 +239,8 @@ public class KafkaLoadTestSamplerGui extends AbstractSamplerGui {
         super.clearGui();
         bootstrapServersField.setText("localhost:9092");
         topicField.setText("test-topic");
+        securityProtocolCombo.setSelectedItem("PLAINTEXT");
+        saslJaasConfigField.setText("");
         producerClassField.setText("");
         messageKeyField.setText("");
         batchSizeField.setText("16384");

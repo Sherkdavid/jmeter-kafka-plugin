@@ -10,6 +10,7 @@ This plugin adds a **Kafka Load Test Sampler** to JMeter. You provide a class th
 
 - Custom message generation through a simple interface
 - Configurable Kafka producer settings (acks, batch size, linger, compression)
+- Security configuration support (`security.protocol`, `sasl.jaas.config`)
 - Optional message key support
 - Multi-module build: separate API and JMeter plugin artifacts
 - Built with Gradle (wrapper included for Windows/Linux/macOS)
@@ -159,6 +160,8 @@ Add **Kafka Load Test Sampler** and set:
 | Property | Description | Default |
 |---|---|---|
 | Message Key | Message key for partitioning/routing | empty |
+| Security Protocol | Kafka security protocol (`PLAINTEXT`, `SSL`, `SASL_PLAINTEXT`, `SASL_SSL`) | `PLAINTEXT` |
+| SASL JAAS Config | JAAS login config passed as `sasl.jaas.config` | empty |
 | Batch Size | Producer batch size (bytes) | `16384` |
 | Linger (ms) | Producer linger time | `10` |
 | Acks | Required acknowledgments (`0`, `1`, `all`) | `1` |
