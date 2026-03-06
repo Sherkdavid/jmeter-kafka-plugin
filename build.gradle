@@ -2,8 +2,13 @@ plugins {
     id 'base'
 }
 
+import java.net.HttpURLConnection
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import java.util.Base64
+
 group = 'io.github.sherkdavid.jmeter.kafka'
-version = '1.0.0'
+version = '0.1.0-SNAPSHOT'
 
 ext {
     jmeterVersion = '5.6.2'
@@ -17,9 +22,9 @@ ext {
     licenseName = 'Apache License, Version 2.0'
     licenseUrl = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
 
-    developerId = 'Sherkdavid'
-    developerName = 'Sherk David'
-    developerEmail = 'sherk@example.com'
+    developerId = 'MurphyD'
+    developerName = 'David Murphy'
+    developerEmail = 'sherkdavid@gmail.com'
 }
 
 subprojects {
@@ -74,10 +79,10 @@ subprojects {
 
             repositories {
                 maven {
-                    name = 'sonatype'
-                    def releasesRepoUrl = uri('https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/')
-                    def snapshotsRepoUrl = uri('https://s01.oss.sonatype.org/content/repositories/snapshots/')
-                    url = version.toString().endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+                    name = 'sonatypeCentralOssrhCompat'
+                    def releasesRepoUrl = uri('https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/')
+                    def snapshotsRepoUrl = uri('https://central.sonatype.com/repository/maven-snapshots/')
+                    url = rootProject.version.toString().endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
 
                     credentials {
                         username = findProperty('ossrhUsername') ?: System.getenv('OSSRH_USERNAME')
@@ -97,4 +102,85 @@ subprojects {
             }
         }
     }
+}
+
+def resolveCentralTokenUsername = {
+    return findProperty('centralTokenUsername')
+        ?: findProperty('ossrhUsername')
+        ?: System.getenv('CENTRAL_TOKEN_USERNAME')
+        ?: System.getenv('OSSRH_USERNAME')
+}
+
+def resolveCentralTokenPassword = {
+    return findProperty('centralTokenPassword')
+        ?: findProperty('ossrhPassword')
+        ?: System.getenv('CENTRAL_TOKEN_PASSWORD')
+        ?: System.getenv('OSSRH_PASSWORD')
+}
+
+def isSnapshotVersion = {
+    return rootProject.version.toString().endsWith('SNAPSHOT')
+}
+
+tasks.register('promoteToCentralPortal') {
+    group = 'publishing'
+    description = 'Uploads a release (non-SNAPSHOT) OSSRH-compat staged repository to Sonatype Central Portal.'
+
+    doLast {
+        if (isSnapshotVersion()) {
+            throw new GradleException(
+                "Version '${rootProject.version}' is a SNAPSHOT. SNAPSHOTs must be published to the snapshots repository only and must not be promoted to the Central Portal.")
+        }
+
+        String username = resolveCentralTokenUsername()
+        String password = resolveCentralTokenPassword()
+
+        if (!username || !password) {
+            throw new GradleException(
+                'Missing Central token credentials. Set centralTokenUsername/centralTokenPassword (or OSSRH equivalents) as Gradle properties or env vars.')
+        }
+
+        String namespace = (findProperty('centralNamespace')
+            ?: System.getenv('CENTRAL_NAMESPACE')
+            ?: rootProject.group.toString()) as String
+
+        String publishingType = (findProperty('centralPublishingType')
+            ?: System.getenv('CENTRAL_PUBLISHING_TYPE')
+            ?: 'user_managed') as String
+
+        String encodedNamespace = URLEncoder.encode(namespace, StandardCharsets.UTF_8.toString())
+        String encodedPublishingType = URLEncoder.encode(publishingType, StandardCharsets.UTF_8.toString())
+        String endpoint = "https://ossrh-staging-api.central.sonatype.com/manual/upload/defaultRepository/${encodedNamespace}?publishing_type=${encodedPublishingType}"
+
+        String token = Base64.encoder.encodeToString("${username}:${password}".getBytes(StandardCharsets.UTF_8))
+
+        logger.lifecycle("Uploading staged repository to Sonatype Central Portal for namespace '{}' with publishing_type='{}'", namespace, publishingType)
+
+        HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection()
+        connection.setRequestMethod('POST')
+        connection.setRequestProperty('Authorization', "Bearer ${token}")
+        connection.setRequestProperty('Accept', 'application/json, text/plain, */*')
+        connection.setConnectTimeout(30_000)
+        connection.setReadTimeout(60_000)
+
+        int responseCode = connection.getResponseCode()
+        InputStream stream = responseCode >= 200 && responseCode < 300 ? connection.getInputStream() : connection.getErrorStream()
+        String responseBody = stream != null ? stream.getText(StandardCharsets.UTF_8.name()) : ''
+
+        if (responseCode < 200 || responseCode >= 300) {
+            throw new GradleException(
+                "Central Portal upload failed (HTTP ${responseCode}). Response: ${responseBody}")
+        }
+
+        logger.lifecycle('Central Portal upload request accepted (HTTP {}).', responseCode)
+        if (responseBody?.trim()) {
+            logger.lifecycle('Response: {}', responseBody.trim())
+        }
+    }
+}
+
+tasks.register('publishAndPromoteToCentralPortal') {
+    group = 'publishing'
+    description = 'Runs publish for a release (non-SNAPSHOT), then uploads the staged repository to Sonatype Central Portal.'
+    dependsOn 'publish', 'promoteToCentralPortal'
 }

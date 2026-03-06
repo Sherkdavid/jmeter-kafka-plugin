@@ -19,6 +19,7 @@ This plugin adds a **Kafka Load Test Sampler** to JMeter. You provide a class th
 
 - `api` - public interfaces/exceptions used by producer implementations
 - `plugin` - JMeter sampler + GUI implementation
+- `example-producer` - sample producer that depends on the published API artifact
 
 ## Published Artifacts
 
@@ -64,19 +65,14 @@ Publish to Sonatype (Maven Central staging):
 ./gradlew publish
 ```
 
-Convenience scripts:
-
-- Windows PowerShell: `./release.ps1` (or `./release.ps1 -Local`)
-- Linux/macOS: `./release.sh` (or `./release.sh --local`)
-
 Required environment variables for remote publish/signing:
 
-- `OSSRH_USERNAME`
-- `OSSRH_PASSWORD`
+- `CENTRAL_TOKEN_USERNAME` (Central Portal user token username)
+- `CENTRAL_TOKEN_PASSWORD` (Central Portal user token password)
 - `SIGNING_KEY` (ASCII-armored private key)
 - `SIGNING_PASSWORD`
 
-The build is preconfigured for `s01.oss.sonatype.org` (snapshot vs release URL chosen by version suffix).
+The build is preconfigured for Sonatype Central OSSRH compatibility endpoint: `ossrh-staging-api.central.sonatype.com`.
 
 ## Install in JMeter
 

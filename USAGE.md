@@ -113,19 +113,14 @@ Publish to Sonatype (Maven Central staging):
 ./gradlew publish
 ```
 
-Convenience scripts:
-
-- Windows PowerShell: `./release.ps1` (or `./release.ps1 -Local`)
-- Linux/macOS: `./release.sh` (or `./release.sh --local`)
-
 Required environment variables:
 
-- `OSSRH_USERNAME`
-- `OSSRH_PASSWORD`
+- `CENTRAL_TOKEN_USERNAME` (Central Portal user token username)
+- `CENTRAL_TOKEN_PASSWORD` (Central Portal user token password)
 - `SIGNING_KEY` (ASCII-armored private key)
 - `SIGNING_PASSWORD`
 
-Publishing is already configured for `s01.oss.sonatype.org`.
+Publishing is already configured for Sonatype Central OSSRH compatibility endpoint `ossrh-staging-api.central.sonatype.com`.
 
 ## Building Your Producer JAR
 
